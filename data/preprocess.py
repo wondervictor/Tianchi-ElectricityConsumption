@@ -18,5 +18,3 @@ def split_data(filename):
                 line += '\n'
                 writeFile.write(line)
 
-split_data('Tianchi_power.csv')
-
