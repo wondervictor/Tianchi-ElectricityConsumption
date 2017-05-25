@@ -20,7 +20,7 @@ def process(settings, filename):
         lines = openFile.readlines()
         for line in lines:
             elements = line.rstrip('\n\r').split(',')
-            data.append(int(elements[1]))
+            data.append(float(elements[1]))
     max_len = len(data)
 
     for i in range(max_len-90):
@@ -32,6 +32,29 @@ def process(settings, filename):
 
 
 
+
+
+
+###
+def initPredictHook(settings, **kwargs):
+    input_types = {}
+    for i in range(30):
+        input_types['data_%s' % i] = dense_vector_sequence(30)
+    settings.input_types = input_types
+
+###
+@provider(init_hook=initPredictHook, cache=CacheType.CACHE_PASS_IN_MEM)
+def predict_process(settings, filename):
+    data = []
+    with open(filename, 'r') as openFile:
+        lines = openFile.readlines()
+        for line in lines:
+            elements = line.rstrip('\n\r').split(',')
+            data.append(float(elements[1]))
+    batch = {}
+    for j in range(30):
+        batch['data_%s' % j] = [data[j:j + 30]]
+    yield batch
 #
 # def get_batch(test=False):
 #     data = []

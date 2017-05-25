@@ -3,7 +3,7 @@
 def split_data(filename):
     data = {}
     with open(filename, 'r') as openFile:
-        f =  openFile.readlines()[1:]
+        f = openFile.readlines()[1:]
         for line in f:
             line_elements = line.rstrip('\r\n').split(',')
             key = line_elements[1]
@@ -18,3 +18,36 @@ def split_data(filename):
                 line += '\n'
                 writeFile.write(line)
 
+
+
+def reshape_data():
+    data = {}
+    # raw data
+    with open('Tianchi_power.csv','r') as openFile:
+        f = openFile.readlines()[1:]
+        for line in f:
+            line_elements = line.rstrip('\n\r').split(',')
+            current_spot = int(line_elements[1])
+            key = '%s' % current_spot
+            value = float(line_elements[2])
+            if key in data:
+                data[key].append(value)
+            else:
+                data[key] = [value]
+
+    max_values = []
+    with open('data/data','w+') as openFile:
+        for key in data.keys():
+            values = data[key]
+            max_value = max(values)
+            max_values.append((key, max_value))
+            line = '%s,' % key
+            length = len(values)
+            line += ','.join(['%s' % (x/max_value) for x in values[length-606:length]])
+            line += '\n'
+            openFile.write(line)
+    with open('data/max_value', 'w+') openFile:
+        for i in max_values:
+            
+
+reshape_data()

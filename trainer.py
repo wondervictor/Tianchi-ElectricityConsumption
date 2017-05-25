@@ -6,7 +6,7 @@ is_predict = get_config_arg('is_predict', bool, False)
 
 process = 'process'
 if is_predict:
-    process = 'process_predict'
+    process = 'predict_process'
 
 test = 'data/test.list'
 train = 'data/train.list'
@@ -21,7 +21,7 @@ define_py_data_sources2(
     obj=process
 )
 
-batch_size = 6
+batch_size = 3
 
 if is_predict:
     batch_size = 1
@@ -57,8 +57,13 @@ for i in range(30):
 
 lstm_reversed = []
 
+fc_con_layers = []
+
 for i in range(30):
-    lstm_reversed.append(lstmemory(name='lstm_2_%s' % i,input=fc_con_layers[i], act=ReluActivation()))
+    lstm_reversed.append(simple_lstm(input=lstm_output[i], size=1, act=ReluActivation()))
+#
+# for i in range(30):
+#     lstm_reversed.append(lstmemory(name='lstm_2_%s' % i,input=lstm_output[i], act=ReluActivation()))
 
 
 output_layers = []
@@ -66,9 +71,14 @@ output_layers = []
 for i in range(30):
     output_layers.append(last_seq(fc_layer(input=lstm_reversed[i], size=1, act=TanhActivation())))
 
+
 if not is_predict:
     cost = regression_cost(input=concat_layer(input=output_layers),label=label)
     outputs(cost)
+else:
+    outputs(output_layers)
+
+
 
 
 

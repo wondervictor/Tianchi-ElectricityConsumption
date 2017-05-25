@@ -5,13 +5,13 @@ set -e
 cfg=trainer.py
 output_dir=output
 log=output/train.log
+model=output/pass-00049
+
 paddle train \
     --config=${cfg} \
     --save_dir=${output_dir} \
-    --trainer_count=2 \
-    --log_period=1000 \
-    --dot_period=100 \
-    --num_passes=100 \
+    --job=test \
+    --config_args=is_predict=1 \
+    --init_model_path=${model} \
     --use_gpu=false \
-    --show_parameter_stats_period=3000 \
-    2>&1 | tee ${log}
+    --predict_output_dir=result
