@@ -37,7 +37,8 @@ def reshape_data():
 
     max_values = []
     with open('data/data','w+') as openFile:
-        for key in data.keys():
+        for i in range(1,1455):
+            key = '%s' % i
             values = data[key]
             max_value = max(values)
             max_values.append((key, max_value))
@@ -46,8 +47,9 @@ def reshape_data():
             line += ','.join(['%s' % (x/max_value) for x in values[length-606:length]])
             line += '\n'
             openFile.write(line)
-    with open('data/max_value', 'w+') openFile:
+
+    with open('data/max_value', 'w+') as openFile:
         for i in max_values:
-            
+            openFile.write('%s,%s\n' % (i[0],i[1]))
 
 reshape_data()

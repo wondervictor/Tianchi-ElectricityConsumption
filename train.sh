@@ -13,5 +13,6 @@ paddle train \
     --dot_period=100 \
     --num_passes=100 \
     --use_gpu=false \
+    --config_args=id=1\
     --show_parameter_stats_period=3000 \
     2>&1 | tee ${log}

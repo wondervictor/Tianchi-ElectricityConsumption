@@ -18,7 +18,10 @@ define_py_data_sources2(
     train_list=train,
     test_list=test,
     module="data_provider",
-    obj=process
+    obj=process,
+    args={
+        'id':1
+    }
 )
 
 batch_size = 3
@@ -34,52 +37,111 @@ settings(
     gradient_clipping_threshold=25
 )
 
-input_data = []
+#input_data = []
 
-for i in range(30):
-    input_data.append(data_layer(name='data_%s' % i, size=30))
+power_data = data_layer(name='power', size=30)
+max_temp_data = data_layer(name='temp_max', size=30)
+min_temp_data = data_layer(name='temp_min', size=30)
+# for i in range(30):
+#     input_data.append(data_layer(name='data_%s' % i, size=30))
 
 label = data_layer(name='label', size=30)
 
-fc_con_layers = []
+def ResLSTM(index,input_power,temp_max, temp_min):
+    lstm_ouput = simple_lstm(name='lstm_%s' % index,input=input_power,size=4,act=ReluActivation())
+    #ressum = addto_layer(input=[lstm_ouput, input_power],act=LinearActivation())
+    temp_fc = fc_layer(name='fc_temp_%s' % index,input=concat_layer(input=[lstm_ouput, temp_max,temp_min]),size=9,act=TanhActivation())
+    first_result = fc_layer(name='first_%s' % index,input=temp_fc, size=1, act=TanhActivation())
+    second_temp_fc = fc_layer(name='second_temp_%s' % index,input=concat_layer(input=[temp_fc, first_result, temp_min, temp_max]),size=9, act=ReluActivation())
+    second_result = fc_layer(name='second_%s' % index,input=second_temp_fc, size=1, act=TanhActivation())
+    third_temp_fc = fc_layer(name='third_temp_%s' % index,input=concat_layer(input=[temp_fc, first_result, second_result,temp_min, temp_max]), size=9,
+                              act=ReluActivation())
+    third_result = fc_layer(name='third_%s' % index,input=third_temp_fc, size=1, act=TanhActivation())
+    return fc_layer(name='res_%s' % index,input=third_temp_fc, size=4, act=TanhActivation()), last_seq(first_result), last_seq(second_result),last_seq(third_result)
 
-for i in range(30):
-    if i > 1:
-        fc_con_layers.append(fc_layer(input=concat_layer(input=[input_data[i], input_data[i-1]]),size=4,act=TanhActivation()))
-    else:
-        fc_con_layers.append(fc_layer(input=input_data[0], size=4, act=TanhActivation()))
+
+temp_link = fc_layer(input=concat_layer([power_data,max_temp_data,min_temp_data]),size=4, act=LinearActivation())
+output_data = [LayerOutput]*30
+input_power = temp_link
+temp_max = max_temp_data
+temp_min = min_temp_data
+for i in range(10):
+    index = i
+    lstm_ouput = simple_lstm(name='lstm_%s' % index, input=input_power, size=4, act=ReluActivation())
+    # ressum = addto_layer(input=[lstm_ouput, input_power],act=LinearActivation())
+    temp_fc = fc_layer(name='fc_temp_%s' % index, input=concat_layer(input=[lstm_ouput, temp_max, temp_min]), size=9,
+                       act=TanhActivation())
+    first_result = fc_layer(name='first_%s' % index, input=temp_fc, size=1, act=TanhActivation())
+    second_temp_fc = fc_layer(name='second_temp_%s' % index,
+                              input=concat_layer(input=[temp_fc, first_result, temp_min, temp_max]), size=9,
+                              act=ReluActivation())
+    second_result = fc_layer(name='second_%s' % index, input=second_temp_fc, size=1, act=TanhActivation())
+    third_temp_fc = fc_layer(name='third_temp_%s' % index,
+                             input=concat_layer(input=[temp_fc, first_result, second_result, temp_min, temp_max]),
+                             size=9,
+                             act=ReluActivation())
+    third_result = fc_layer(name='third_%s' % index, input=third_temp_fc, size=1, act=TanhActivation())
+    # return fc_layer(name='res_%s' % index, input=third_temp_fc, size=4, act=TanhActivation()), last_seq(
+    #     first_result), last_seq(second_result), last_seq(third_result)
+
+    # temp_link, first, second, third = ResLSTM(i,temp_link, max_temp_data, min_temp_data)
+
+    input_power = fc_layer(name='res_%s' % index, input=third_temp_fc, size=4, act=TanhActivation())
+
+    output_data[3*i] = last_seq(first_result)
+    output_data[3*i+1] = last_seq(second_result)
+    output_data[3*i+2] = last_seq(third_result)
 
 
-lstm_output = []
+if not is_predict:
+    cost = regression_cost(input=concat_layer(input=output_data),label=label)
+    outputs(cost)
+else:
+    outputs(output_data)
 
-for i in range(30):
-    lstm_output.append(lstmemory(name='lstm_1_%s' % i,input=fc_con_layers[i], act=ReluActivation()))
 
-lstm_reversed = []
 
-fc_con_layers = []
 
-for i in range(30):
-    lstm_reversed.append(simple_lstm(input=lstm_output[i], size=1, act=ReluActivation()))
+
+# fc_con_layers = []
+#
+# for i in range(30):
+#     if i > 1:
+#         fc_con_layers.append(fc_layer(input=concat_layer(input=[input_data[i], input_data[i-1]]),size=4,act=TanhActivation()))
+#     else:
+#         fc_con_layers.append(fc_layer(input=input_data[0], size=4, act=TanhActivation()))
+#
+#
+# lstm_output = []
+#
+# for i in range(30):
+#     lstm_output.append(lstmemory(name='lstm_1_%s' % i,input=fc_con_layers[i], act=ReluActivation()))
+#
+# lstm_reversed = []
+#
+# fc_con_layers = []
+#
+# for i in range(30):
+#     lstm_reversed.append(simple_lstm(input=lstm_output[i], size=1, act=ReluActivation()))
 #
 # for i in range(30):
 #     lstm_reversed.append(lstmemory(name='lstm_2_%s' % i,input=lstm_output[i], act=ReluActivation()))
 
 
-output_layers = []
-
-for i in range(30):
-    output_layers.append(last_seq(fc_layer(input=lstm_reversed[i], size=1, act=TanhActivation())))
-
-
-if not is_predict:
-    cost = regression_cost(input=concat_layer(input=output_layers),label=label)
-    outputs(cost)
-else:
-    outputs(output_layers)
-
-
-
+# output_layers = []
+#
+# for i in range(30):
+#     output_layers.append(last_seq(fc_layer(input=lstm_reversed[i], size=1, act=TanhActivation())))
+#
+#
+# if not is_predict:
+#     cost = regression_cost(input=concat_layer(input=output_layers),label=label)
+#     outputs(cost)
+# else:
+#     outputs(output_layers)
+#
+#
+#
 
 
 
