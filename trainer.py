@@ -47,25 +47,25 @@ min_temp_data = data_layer(name='temp_min', size=30)
 
 label = data_layer(name='label', size=30)
 
-def ResLSTM(index,input_power,temp_max, temp_min):
-    lstm_ouput = simple_lstm(name='lstm_%s' % index,input=input_power,size=4,act=ReluActivation())
-    #ressum = addto_layer(input=[lstm_ouput, input_power],act=LinearActivation())
-    temp_fc = fc_layer(name='fc_temp_%s' % index,input=concat_layer(input=[lstm_ouput, temp_max,temp_min]),size=9,act=TanhActivation())
-    first_result = fc_layer(name='first_%s' % index,input=temp_fc, size=1, act=TanhActivation())
-    second_temp_fc = fc_layer(name='second_temp_%s' % index,input=concat_layer(input=[temp_fc, first_result, temp_min, temp_max]),size=9, act=ReluActivation())
-    second_result = fc_layer(name='second_%s' % index,input=second_temp_fc, size=1, act=TanhActivation())
-    third_temp_fc = fc_layer(name='third_temp_%s' % index,input=concat_layer(input=[temp_fc, first_result, second_result,temp_min, temp_max]), size=9,
-                              act=ReluActivation())
-    third_result = fc_layer(name='third_%s' % index,input=third_temp_fc, size=1, act=TanhActivation())
-    return fc_layer(name='res_%s' % index,input=third_temp_fc, size=4, act=TanhActivation()), last_seq(first_result), last_seq(second_result),last_seq(third_result)
-
+# def ResLSTM(index,input_power,temp_max, temp_min):
+#     lstm_ouput = simple_lstm(name='lstm_%s' % index,input=input_power,size=4,act=ReluActivation())
+#     #ressum = addto_layer(input=[lstm_ouput, input_power],act=LinearActivation())
+#     temp_fc = fc_layer(name='fc_temp_%s' % index,input=concat_layer(input=[lstm_ouput, temp_max,temp_min]),size=9,act=TanhActivation())
+#     first_result = fc_layer(name='first_%s' % index,input=temp_fc, size=1, act=TanhActivation())
+#     second_temp_fc = fc_layer(name='second_temp_%s' % index,input=concat_layer(input=[temp_fc, first_result, temp_min, temp_max]),size=9, act=ReluActivation())
+#     second_result = fc_layer(name='second_%s' % index,input=second_temp_fc, size=1, act=TanhActivation())
+#     third_temp_fc = fc_layer(name='third_temp_%s' % index,input=concat_layer(input=[temp_fc, first_result, second_result,temp_min, temp_max]), size=9,
+#                               act=ReluActivation())
+#     third_result = fc_layer(name='third_%s' % index,input=third_temp_fc, size=1, act=TanhActivation())
+#     return fc_layer(name='res_%s' % index,input=third_temp_fc, size=4, act=TanhActivation()), last_seq(first_result), last_seq(second_result),last_seq(third_result)
+#
 
 temp_link = fc_layer(input=concat_layer([power_data,max_temp_data,min_temp_data]),size=4, act=LinearActivation())
 output_data = [LayerOutput]*30
 input_power = temp_link
 temp_max = max_temp_data
 temp_min = min_temp_data
-for i in range(10):
+for i in range(15):
     index = i
     lstm_ouput = simple_lstm(name='lstm_%s' % index, input=input_power, size=4, act=ReluActivation())
     # ressum = addto_layer(input=[lstm_ouput, input_power],act=LinearActivation())
@@ -76,21 +76,23 @@ for i in range(10):
                               input=concat_layer(input=[temp_fc, first_result, temp_min, temp_max]), size=9,
                               act=ReluActivation())
     second_result = fc_layer(name='second_%s' % index, input=second_temp_fc, size=1, act=TanhActivation())
-    third_temp_fc = fc_layer(name='third_temp_%s' % index,
-                             input=concat_layer(input=[temp_fc, first_result, second_result, temp_min, temp_max]),
-                             size=9,
-                             act=ReluActivation())
-    third_result = fc_layer(name='third_%s' % index, input=third_temp_fc, size=1, act=TanhActivation())
+    # third_temp_fc = fc_layer(name='third_temp_%s' % index,
+    #                          input=concat_layer(input=[temp_fc, first_result, second_result, temp_min, temp_max]),
+    #                          size=9,
+    #                          act=ReluActivation())
+    #third_result = fc_layer(name='third_%s' % index, input=third_temp_fc, size=1, act=TanhActivation())
     # return fc_layer(name='res_%s' % index, input=third_temp_fc, size=4, act=TanhActivation()), last_seq(
     #     first_result), last_seq(second_result), last_seq(third_result)
 
     # temp_link, first, second, third = ResLSTM(i,temp_link, max_temp_data, min_temp_data)
 
-    input_power = fc_layer(name='res_%s' % index, input=third_temp_fc, size=4, act=TanhActivation())
+    input_power = fc_layer(name='res_%s' % index, input=second_temp_fc, size=4, act=TanhActivation())
 
-    output_data[3*i] = last_seq(first_result)
-    output_data[3*i+1] = last_seq(second_result)
-    output_data[3*i+2] = last_seq(third_result)
+    # output_data[3*i] = last_seq(first_result)
+    # output_data[3*i+1] = last_seq(first_result)
+    # output_data[3 * i + 2] = last_seq(first_result)
+    output_data[2*i] = last_seq(first_result)
+    output_data[2*i+1] = last_seq(second_result)
 
 
 if not is_predict:
@@ -98,7 +100,6 @@ if not is_predict:
     outputs(cost)
 else:
     outputs(output_data)
-
 
 
 

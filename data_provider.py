@@ -23,7 +23,7 @@ def process(settings, filename):
     with open(filename, 'r') as openFile:
         line = openFile.readlines()[fac_id-1]
         data = map(float, line.rstrip('\n\r').split(',')[1:])
-    with open('data/temp', 'r') as openFile:
+    with open('data/data/temp', 'r') as openFile:
         lines = openFile.readlines()
         min_temp = map(float, lines[0].rstrip('\n\r').split(','))
         max_temp = map(float, lines[1].rstrip('\n\r').split(','))
@@ -77,7 +77,7 @@ def predict_process(settings, filename):
     with open(filename, 'r') as openFile:
         line = openFile.readlines()[fac_id-1]
         data = map(float, line.rstrip('\n\r').split(',')[1:])
-    with open('data/weather', 'r') as openFile:
+    with open('data/data/temp', 'r') as openFile:
         lines = openFile.readlines()
         min_temp = map(float, lines[0].rstrip('\n\r').split(','))
         max_temp = map(float, lines[1].rstrip('\n\r').split(','))
