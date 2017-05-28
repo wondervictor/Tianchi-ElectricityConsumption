@@ -1,12 +1,13 @@
 #!/usr/bin/env bash
 
-set -e
 fac_id=$1
-output=$2
+output=output
 cfg=trainer.py
 output_dir=${output}
 log=${output}/train.log
 model=${output}/${fac_id}/pass-00199
+
+mkdir result/${fac_id}
 
 paddle train \
     --config=${cfg} \
@@ -15,7 +16,10 @@ paddle train \
     --config_args=is_predict=1,id=${fac_id} \
     --init_model_path=${model} \
     --use_gpu=false \
-    --predict_output_dir=result
+    --predict_output_dir=result/${fac_id}
 
-mv pass-00199 model
-rm -rf pass-*
+path=${output}/${fac_id}
+
+mv  ${model} ${path}/model
+
+rm -rf ${path}/pass-*

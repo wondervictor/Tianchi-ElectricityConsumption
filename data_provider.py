@@ -82,9 +82,10 @@ def predict_process(settings, filename):
         min_temp = map(float, lines[0].rstrip('\n\r').split(','))
         max_temp = map(float, lines[1].rstrip('\n\r').split(','))
         batch = {}
-        batch['power'] = [data[576:606]]
-        batch['temp_max'] = [max_temp[606:636]]
-        batch['temp_min'] = [min_temp[606:636]]
+        start = 0
+        batch['power'] = [data[576-start:606-start]]
+        batch['temp_max'] = [max_temp[606-start:636-start]]
+        batch['temp_min'] = [min_temp[606-start:636-start]]
         yield batch
 #
 # def get_batch(test=False):

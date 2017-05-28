@@ -1,12 +1,14 @@
 #!/usr/bin/env bash
 
-output_dir=1
+start=$1
+end=$2
 
-for i in $( seq 1 1455 )
+#832 1150 1455
+
+for i in $( seq $start $end )
 do
     echo $i
-    sh train.sh $i $output_dir
+    sh train.sh $i
 
-
-    sh predict.sh $i $output_dir
+    sh predict.sh $i
 done
